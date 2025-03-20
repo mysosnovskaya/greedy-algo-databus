@@ -1,5 +1,7 @@
-
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,12 +10,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GreedyAlgorithm {
+
     public static void main(String[] args) throws IOException {
+        List<Path> paths = Files.walk(Paths.get("input")).collect(Collectors.toList());
+        paths.removeFirst();
+
+        List<ProblemInstance> problemInstances = paths.stream()
+                .map(InstanceReader::readInstance)
+                .toList();
+
+        for (ProblemInstance problemInstance : problemInstances) {
+            double result = buildSchedule(problemInstance);
+            System.out.println(problemInstance.instanceName() + " " + result);
+        }
+
     }
 
-    public static double buildSchedule(ProblemInstance problemInstance) {
+    private static double buildSchedule(ProblemInstance problemInstance) {
         List<List<Integer>> schedule = new LinkedList<>();
         List<Integer> notExecutedJodIndexes = new LinkedList<>();
         Map<Integer, Integer> tactsToFullExecution = new HashMap<>();
@@ -90,8 +106,8 @@ public class GreedyAlgorithm {
         for (int i = 0; i < jobsToChooseFrom.size(); i++) {
             if (Math.abs(percent - indexToJob.get(jobsToChooseFrom.get(i)).busPercent())
                     <= Optional.ofNullable(closestJobIndex).map(ind -> Math.abs(percent - indexToJob.get(jobsToChooseFrom.get(ind)).busPercent()))
-                            .orElse(100)
-                    &&  problemInstance.order().get(jobsToChooseFrom.get(i)).stream().noneMatch(notExecutedJodIndexes::contains)) {
+                    .orElse(100)
+                    && problemInstance.order().get(jobsToChooseFrom.get(i)).stream().noneMatch(notExecutedJodIndexes::contains)) {
                 closestJobIndex = i;
             }
         }
